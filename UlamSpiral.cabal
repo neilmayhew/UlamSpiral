@@ -1,0 +1,10 @@
+cabal-version:      3.4
+name:               UlamSpiral
+version:            0.1.0.0
+synopsis:           Draw an Ulam Spiral using the diagrams package
+
+executable UlamSpiral
+  main-is:          UlamSpiral.hs
+  build-depends:    base, colour, diagrams-lib, diagrams-svg, SVGFonts
+  default-language: Haskell2010
+  ghc-options:     -Wall -Wcompat -Wunused-packages
