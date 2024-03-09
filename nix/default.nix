@@ -1,5 +1,5 @@
-{ mkDerivation, base, colour, diagrams-lib, diagrams-svg, lib
-, SVGFonts
+{ mkDerivation, arithmoi, base, colour, diagrams-lib, diagrams-svg
+, lib, SVGFonts, vector
 }:
 mkDerivation {
   pname = "UlamSpiral";
@@ -8,7 +8,7 @@ mkDerivation {
   isLibrary = false;
   isExecutable = true;
   executableHaskellDepends = [
-    base colour diagrams-lib diagrams-svg SVGFonts
+    arithmoi base colour diagrams-lib diagrams-svg SVGFonts vector
   ];
   description = "Draw an Ulam Spiral using the diagrams package";
   license = "unknown";
