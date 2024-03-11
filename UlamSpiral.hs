@@ -25,9 +25,7 @@ main = do
 
 ulamSpiral :: PreparedFont (N B) -> Int -> Diagram B
 ulamSpiral font w =
-  foldMap
-    (ulamPoint (colour . uniqueFactorCount))
-    [(x, y) | x <- [-r .. r], y <- [-r .. r]]
+  foldMap ulamPoint [(x, y) | x <- [-r .. r], y <- [-r .. r]]
  where
   r = w `div` 2
   colour 0 = uncurryRGB sRGB $ hsv 0 1 1
@@ -40,36 +38,34 @@ ulamSpiral font w =
         (_, 1) -> 0
         (c, _) -> c
     | otherwise = 1
-  ulamPoint = if w > 31 then ulamSquare else ulamCircle font
+  ulamPoint (x, y) = translate (realToFrac <$> x ^& y) $
+    if w <= 31
+      then ulamCircle font n c
+      else ulamSquare c
+    where
+      n = ulamNumber (x, y)
+      c = colour $ uniqueFactorCount n
 
-ulamCircle :: PreparedFont (N B) -> (Int -> Colour (N B)) -> (Int, Int) -> Diagram B
-ulamCircle font colour (x, y) =
-  let r = max (abs x) (abs y)
-      d = 2 * r
-      innerArea = (d - 1) ^ (2 :: Int)
-      midRightIndex = innerArea + r
-      midRightOffset
-        | abs x > abs y = if x > 0 then 0 * d + y else 2 * d - y
-        | otherwise     = if y > 0 then 1 * d - x else 3 * d + x
-      number = midRightIndex + midRightOffset
-   in translate (realToFrac <$> x ^& y) $
-        mconcat
-          [ label font (show number) # fc white
-          , circle 0.5 # lw none # fc (colour number)
-          ]
+ulamCircle :: PreparedFont (N B) -> Int -> Colour (N B) -> Diagram B
+ulamCircle font number colour =
+  mconcat
+    [ label font (show number) # fc white
+    , circle 0.5 # lw none # fc colour
+    ]
 
-ulamSquare :: (Int -> Colour (N B)) -> (Int, Int) -> Diagram B
-ulamSquare colour (x, y) =
-  let r = max (abs x) (abs y)
-      d = 2 * r
-      innerArea = (d - 1) ^ (2 :: Int)
-      midRightIndex = innerArea + r
-      midRightOffset
-        | abs x > abs y = if x > 0 then 0 * d + y else 2 * d - y
-        | otherwise     = if y > 0 then 1 * d - x else 3 * d + x
-      number = midRightIndex + midRightOffset
-   in translate (realToFrac <$> x ^& y) $
-        rect 1 1 # lw none # fc (colour number)
+ulamSquare :: Colour (N B) -> Diagram B
+ulamSquare colour = rect 1 1 # lw none # fc colour
+
+ulamNumber :: (Int, Int) -> Int
+ulamNumber (x, y) = midRightIndex + midRightOffset
+  where
+    r = max (abs x) (abs y)
+    d = 2 * r
+    innerArea = (d - 1) ^ (2 :: Int)
+    midRightIndex = innerArea + r
+    midRightOffset
+      | abs x > abs y = if x > 0 then 0 * d + y else 2 * d - y
+      | otherwise     = if y > 0 then 1 * d - x else 3 * d + x
 
 label :: PreparedFont (N B) -> String -> Diagram B
 label font s = toText s # center
