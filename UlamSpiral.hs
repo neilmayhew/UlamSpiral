@@ -21,11 +21,12 @@ main = do
 ulamSpiral :: PreparedFont (N B) -> Int -> Diagram B
 ulamSpiral font w =
   foldMap
-    (ulamCircle font colour)
+    (ulamPoint colour)
     [(x, y) | x <- [-r .. r], y <- [-r .. r]]
  where
   r = w `div` 2
   colour i = uncurryRGB sRGB $ hsv (180 - realToFrac i * 360 / realToFrac (r + 1)) 0.35 0.9
+  ulamPoint = if w > 31 then ulamSquare else ulamCircle font
 
 ulamCircle :: PreparedFont (N B) -> (Int -> Colour (N B)) -> (Int, Int) -> Diagram B
 ulamCircle font colour (x, y) =
@@ -42,6 +43,19 @@ ulamCircle font colour (x, y) =
           [ label font (show number) # fc white
           , circle 0.5 # lw none # fc (colour r)
           ]
+
+ulamSquare :: (Int -> Colour (N B)) -> (Int, Int) -> Diagram B
+ulamSquare colour (x, y) =
+  let r = max (abs x) (abs y)
+      d = 2 * r
+      innerArea = (d - 1) ^ (2 :: Int)
+      midRightIndex = innerArea + r
+      midRightOffset
+        | abs x > abs y = if x > 0 then 0 * d + y else 2 * d - y
+        | otherwise     = if y > 0 then 1 * d - x else 3 * d + x
+      number = midRightIndex + midRightOffset
+   in translate (realToFrac <$> x ^& y) $
+        rect 1 1 # lw none # fc (colour number)
 
 label :: PreparedFont (N B) -> String -> Diagram B
 label font s = toText s # center
