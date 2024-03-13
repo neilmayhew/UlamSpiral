@@ -1,7 +1,7 @@
 FONTNAME := Roboto-Medium
 
 UlamSpiral.svg: UlamSpiral.hs fonts/$(FONTNAME).svg
-	cabal run -- UlamSpiral -h 900 -o $@ 19
+	cabal run -- UlamSpiral -h 1000 -o $@
 
 fonts/$(FONTNAME).ttf:
 	@echo 'Please download the $(FONTNAME) font from fonts.google.com'

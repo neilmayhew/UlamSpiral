@@ -1,5 +1,7 @@
+{-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
@@ -8,20 +10,49 @@ import Data.Colour.RGBSpace (uncurryRGB)
 import Data.Colour.RGBSpace.HSV (hsv)
 import Data.Ord (comparing)
 import Data.Vector ((!), maximumBy)
-import Diagrams.Backend.SVG.CmdLine (B, mainWith)
-import Diagrams.Prelude hiding (font)
+import Diagrams.Backend.CmdLine (MainOpts, mainRender, parser)
+import Diagrams.Backend.SVG.CmdLine (B)
+import Diagrams.Prelude hiding (font, value)
 import Graphics.SVGFonts.PathInRect (PathInRect (..), fit_height)
 import Graphics.SVGFonts.ReadFont (PreparedFont, loadFont)
 import Graphics.SVGFonts.Text (TextOpts, svgText, textFont)
 import Math.NumberTheory.ArithmeticFunctions (bigOmegaA, smallOmegaA)
 import Math.NumberTheory.ArithmeticFunctions.SieveBlock (runFunctionOverBlock)
+import Options.Applicative
+
+import qualified System.Console.Terminal.Size as TS
+
+data Options = Options
+  { optSize :: Int
+  , optSVGOptions :: MainOpts (Diagram B)
+  }
 
 main :: IO ()
 main = do
+
+  cols <- maybe 100 TS.width <$> TS.size
+
+  Options {..} <- customExecParser
+    ( prefs $ columns cols )
+    ( info
+      ( do
+          optSize <- option auto $
+            short 'z' <> long "size" <> metavar "INT" <> value 19 <>
+            help "Size of the spiral (width or height)" <> showDefault
+          optSVGOptions <- parser
+          _ <- abortOption (ShowHelpText Nothing) $
+            short '?' <> long "help" <>
+            help "Show this help text"
+          pure Options {..}
+      )
+      ( fullDesc <> header "Draw an Ulam Spiral as an SVG file" )
+    )
+
   font <- loadFont "fonts/Roboto-Medium.svg"
-  mainWith $
+
+  mainRender optSVGOptions $
     bgFrame 0.1 darkslategrey
-      . ulamSpiral font
+      $ ulamSpiral font optSize
 
 ulamSpiral :: PreparedFont (N B) -> Int -> Diagram B
 ulamSpiral font w =
